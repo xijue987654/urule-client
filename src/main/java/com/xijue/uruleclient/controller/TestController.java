@@ -5,9 +5,10 @@ import com.bstek.urule.runtime.KnowledgePackage;
 import com.bstek.urule.runtime.KnowledgeSession;
 import com.bstek.urule.runtime.KnowledgeSessionFactory;
 import com.bstek.urule.runtime.service.KnowledgeService;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.xijue.uruleclient.entity.RequestDto;
+import com.xijue.uruleclient.entity.ResponseDto;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -29,5 +30,28 @@ public class TestController {
         //result，返回参数，和参数库中定义一致
         Integer result = (Integer) session.getParameter("result");
         return String.valueOf(result);
+    }
+
+    @RequestMapping(value = "/cal_sum_score", method = RequestMethod.POST)
+    public ResponseDto calSumScore(@RequestBody RequestDto request) throws Exception {
+        ResponseDto result = new ResponseDto();
+        if (!CollectionUtils.isEmpty(request.getLists())) {
+            KnowledgeService knowledgeService = (KnowledgeService) Utils.getApplicationContext().getBean(KnowledgeService.BEAN_ID);
+            //参数，Urule项目名/知识包名
+            KnowledgePackage knowledgePackage = knowledgeService.getKnowledge("urule-demo/framework");
+            KnowledgeSession session = KnowledgeSessionFactory.newKnowledgeSession(knowledgePackage);
+//            List<Framework> lists = request.getLists();
+//            Map<String, Object> param = new HashMap();
+//            参数，var，传入参数，和参数库中定义一致
+//            param.put("request", request);
+//            session.fireRules(param);
+            session.insert(request);
+            session.fireRules();
+            String sumScore = (String) session.getParameter("sumScore");
+
+            result.setSumScore(sumScore);
+            return result;
+        }
+        return result;
     }
 }
